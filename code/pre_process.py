@@ -19,10 +19,10 @@ def nfold_dataset_gen(path_name,div_size,SNR,train_por,if_train,mix_por=np.array
     Data_noise_EM = Data_noise_EM.to_numpy()
     Data_noise_MA = Data_noise_MA.to_numpy()
 
-    BW = Data_noise_BW[:, 1]  # 1 is the easier
+    BW = Data_noise_BW[:, 1]
     BW = np.reshape(BW, (BW.shape[0], 1))
 
-    EM = Data_noise_EM[:, 1]  # 1 is the easier
+    EM = Data_noise_EM[:, 1]
     EM = np.reshape(EM, (EM.shape[0], 1))
 
     MA = Data_noise_MA[:, 1]
