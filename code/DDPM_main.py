@@ -33,9 +33,7 @@ beta_t=np.linspace(start=1e-4,stop=0.02,num=T) #1/(T-np.arange(T)+1)
 # beta_t=tls.cosine_schedule(T=T,s=0.08)
 sigma_t=np.sqrt(beta_t)
 
-# trainset,testset,recover_bar=sp.nfold_dataset_gen(path_name,div_size,SNR,training_por,if_train=1,mix_por=mix_por)
-
-trainset,testset,recover_bar=ier.inhouse_dataset_gen(path_name,div_size,if_train=0,test_snr=0, mix_por=mix_por)
+trainset,testset,recover_bar=sp.nfold_dataset_gen(path_name,div_size,SNR,training_por,if_train=1,mix_por=mix_por)
 
 # trainset_clean=trainset[:,:,:12]
 # trainset_clean=np.reshape(trainset_clean,(trainset_clean.shape[0]*trainset_clean.shape[-1],trainset_clean.shape[1]))
@@ -43,25 +41,28 @@ trainset,testset,recover_bar=ier.inhouse_dataset_gen(path_name,div_size,if_train
 # trainset_noisy=trainset[:,:,12:]
 # trainset_noisy=np.reshape(trainset_noisy,(trainset_noisy.shape[0]*trainset_noisy.shape[-1],trainset_noisy.shape[1]))
 # trainset_noisy=sp.data_batchlization_dnn(trainset_noisy,batchsize=batch_size)
-# #
-testset_noisy=testset[:,:,12:]
-testset_noisy=sp.data_batchlization(testset_noisy,batchsize=batch_size)[2:4]
-testset_clean=testset[:,:,:12]
-testset_clean=sp.data_batchlization(testset_clean,batchsize=batch_size)[2:4]
+# 
+# testset_noisy=testset[:,:,12:]
+# testset_noisy=sp.data_batchlization(testset_noisy,batchsize=batch_size)[2:4]
+# testset_clean=testset[:,:,:12]
+# testset_clean=sp.data_batchlization(testset_clean,batchsize=batch_size)[2:4]
 
-# trainset_clean=np.reshape(trainset[:,:,0],(trainset.shape[0],trainset.shape[1],1))
-# trainset_clean=sp.data_batchlization(trainset_clean,batchsize=batch_size)
-# trainset_noisy=np.reshape(trainset[:,:,1],(trainset.shape[0],trainset.shape[1],1))
-# trainset_noisy=sp.data_batchlization(trainset_noisy,batchsize=batch_size)
-#
-# testset_noisy=np.reshape(testset[:,:,1],(testset.shape[0],testset.shape[1],1))
-# testset_noisy=sp.data_batchlization(testset_noisy,batchsize=batch_size)
-# testset_clean=np.reshape(testset[:,:,0],(testset.shape[0],testset.shape[1],1))
-# testset_clean=sp.data_batchlization(testset_clean,batchsize=batch_size)
+trainset_clean=np.reshape(trainset[:,:,0],(trainset.shape[0],trainset.shape[1],1))
+trainset_clean=sp.data_batchlization(trainset_clean,batchsize=batch_size)
+trainset_noisy=np.reshape(trainset[:,:,1],(trainset.shape[0],trainset.shape[1],1))
+trainset_noisy=sp.data_batchlization(trainset_noisy,batchsize=batch_size)
 
-# DDPM = tls.DDPM_model()
+testset_noisy=np.reshape(testset[:,:,1],(testset.shape[0],testset.shape[1],1))
+testset_noisy=sp.data_batchlization(testset_noisy,batchsize=batch_size)
+testset_clean=np.reshape(testset[:,:,0],(testset.shape[0],testset.shape[1],1))
+testset_clean=sp.data_batchlization(testset_clean,batchsize=batch_size)
+
+DDPM = tls.DDPM_model()
+
+# ddpm train
 # DDPM.train(path_name=path_name, trainset=trainset_clean, epochs=5, beta_t=beta_t, lr=1e-4)
 
+# encoder train
 # dcst.encoder_model_train(clean_data=trainset_clean,noisy_data=trainset_noisy,beta_t=beta_t,batch_size=batch_size,path_name=path_name)
 
 denoise_data=tls.denoise_conditional_sampling(condition=testset_noisy,ground=testset_clean,path_name=path_name,
@@ -80,28 +81,28 @@ for i in range(batch_num):
         testset_clean[i, j, :] = testset_clean[i, j, :] + recover_bar[i * batch_size + j]
         testset_noisy[i, j, :] = testset_noisy[i, j, :] + recover_bar[i * batch_size + j]
         RMSE_piece[i*batch_size+j] = metrics.RMSE(denoise_data[i,j,:,:], testset_clean[i,j,:])
-#
-# plt.plot(RMSE_piece)
-# RMSE=metrics.RMSE(denoise_data,testset_clean)
-# SNR=metrics.SNR(denoise_data,testset_clean)
-# print("RMSE=",RMSE)
-# print("SNR=",SNR)
+
+plt.plot(RMSE_piece)
+RMSE=metrics.RMSE(denoise_data,testset_clean)
+SNR=metrics.SNR(denoise_data,testset_clean)
+print("RMSE=",RMSE)
+print("SNR=",SNR)
 
 # plot
-# clean_data=testset_clean[:1,:,:,:]
-# noisy_data=testset_noisy[:1,:,:,:]
+clean_data=testset_clean[:1,:,:,:]
+noisy_data=testset_noisy[:1,:,:,:]
 sample_num=5
-# ptls.show_img(clean_data,noisy_data,denoise_data,sample_num)
+ptls.show_img(clean_data,noisy_data,denoise_data,sample_num)
 st=41000  # 18000   103:41000  # plot window use: record 116 :time 41000
 et=st+1024*2
-# ptls.demo_plot(path_name=path_name,ground_truth=testset_clean,noise_data=testset_noisy,denoise_data=denoise_data,
-#                start_time=st,end_time=et)
+ptls.demo_plot(path_name=path_name,ground_truth=testset_clean,noise_data=testset_noisy,denoise_data=denoise_data,
+               start_time=st,end_time=et)
 
-# ptls.compare_demo_plot(path_name,ground_truth=clean_data,noise_data=noisy_data,start_time=st,end_time=et,
-#                       beta_t=beta_t,sigma_t=sigma_t,datadim=datadim,batch_size=batch_size,channel=channel,recover_bar=recover_bar)
+ptls.compare_demo_plot(path_name,ground_truth=clean_data,noise_data=noisy_data,start_time=st,end_time=et,
+                      beta_t=beta_t,sigma_t=sigma_t,datadim=datadim,batch_size=batch_size,channel=channel,recover_bar=recover_bar)
 
 # fold valid
-state = True
+state = False
 if state:
     snr_bank = np.array([0, 1.25, 5])
     mix_choice = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1],
