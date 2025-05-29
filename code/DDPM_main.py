@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import metrics
-import inhouse_ecg_read as ier
 
 import DDPM_tools as tls
 import pre_process as sp
@@ -10,7 +9,6 @@ import plot_tools as ptls
 import denoise_conditional_sampling_tools as dcst
 import os
 import matplotlib.pyplot as plt
-import soft_threshold_WT_tools as stwt
 
 import denois_RGAN_tools as gan_tls
 import denois_DGAN_tools as dnngan_tls
@@ -34,18 +32,6 @@ beta_t=np.linspace(start=1e-4,stop=0.02,num=T) #1/(T-np.arange(T)+1)
 sigma_t=np.sqrt(beta_t)
 
 trainset,testset,recover_bar=sp.nfold_dataset_gen(path_name,div_size,SNR,training_por,if_train=1,mix_por=mix_por)
-
-# trainset_clean=trainset[:,:,:12]
-# trainset_clean=np.reshape(trainset_clean,(trainset_clean.shape[0]*trainset_clean.shape[-1],trainset_clean.shape[1]))
-# trainset_clean=sp.data_batchlization_dnn(trainset_clean,batchsize=batch_size)
-# trainset_noisy=trainset[:,:,12:]
-# trainset_noisy=np.reshape(trainset_noisy,(trainset_noisy.shape[0]*trainset_noisy.shape[-1],trainset_noisy.shape[1]))
-# trainset_noisy=sp.data_batchlization_dnn(trainset_noisy,batchsize=batch_size)
-# 
-# testset_noisy=testset[:,:,12:]
-# testset_noisy=sp.data_batchlization(testset_noisy,batchsize=batch_size)[2:4]
-# testset_clean=testset[:,:,:12]
-# testset_clean=sp.data_batchlization(testset_clean,batchsize=batch_size)[2:4]
 
 trainset_clean=np.reshape(trainset[:,:,0],(trainset.shape[0],trainset.shape[1],1))
 trainset_clean=sp.data_batchlization(trainset_clean,batchsize=batch_size)
